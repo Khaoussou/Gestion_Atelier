@@ -19,4 +19,8 @@ class Categorie extends Model
     {
         return $builder->where("libelle", $libelle);
     }
+    public function scopeGetCatById(Builder $builder, $id)
+    {
+        return $builder->where("id", $id);
+    }
 }

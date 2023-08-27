@@ -9,33 +9,27 @@ use App\Http\Requests\UpdateArticleRequest;
 use App\Http\Resources\CategorieResource;
 use App\Http\Resources\FournisseurResource;
 use App\Models\ArticleFournisseur;
+use App\Models\ArticleVente;
 use App\Models\Categorie;
 use App\Traits\UploadFile;
 use App\Models\Fournisseur;
+use App\Traits\Format;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ArticleController extends Controller
 {
-    use UploadFile;
+    use UploadFile, Format;
     /**
      * Display a listing of the resource.
      */
-    public function response($status, $message, $data)
-    {
-        return [
-            "statut" => $status,
-            "message" => $message,
-            "data" => $data
-        ];
-    }
     public function index()
     {
         $article = new Article();
         $categorie = new Categorie();
         $fournisseur = new Fournisseur();
         $allArticles = ArticleResource::collection($article->orderBy("id", "DESC")->get());
-        $allCategories = CategorieResource::collection($categorie->all());
+        $allCategories = CategorieResource::collection($categorie->where("type_categorie", "confection")->get());
         $allFournisseurs = FournisseurResource::collection($fournisseur->all());
         return $this->response(Response::HTTP_ACCEPTED, "", ["articles" => $allArticles, "categories" => $allCategories, "fournisseurs" => $allFournisseurs]);
     }

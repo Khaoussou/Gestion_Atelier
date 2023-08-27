@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArtcileVenteController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\FournisseurController;
@@ -28,3 +29,5 @@ Route::get("/list/{paginator?}", [CategorieController::class, "list"]);
 Route::apiResource("/categories", CategorieController::class);
 Route::post("/articles/{article}", [ArticleController::class, "update"]);
 Route::apiResource("/articles", ArticleController::class);
+Route::post("/articleVentes/{article}", [ArticleController::class, "update"]);
+Route::apiResource("/articleVentes", ArtcileVenteController::class);

@@ -40,7 +40,10 @@ class CategorieController extends Controller
      */
     public function store(CategoriePostRequest $request)
     {
-        $categorie = ["libelle" => $request->libelle];
+        $categorie = [
+            "libelle" => $request->libelle,
+            "type_categorie" => $request->type
+        ];
         $newCategorie = new CategorieResource(Categorie::create($categorie));
         return $this->response(Response::HTTP_ACCEPTED, "Insertion réussie !", $newCategorie);
     }
@@ -62,7 +65,10 @@ class CategorieController extends Controller
     {
         $categorie = Categorie::find($id);
         if ($categorie) {
-            $categorie->update(["libelle" => $request->libelle]);
+            $categorie->update([
+                "libelle" => $request->libelle,
+                "type_categorie" => $request->type
+            ]);
             return $this->response(Response::HTTP_ACCEPTED, "Modification réussie !", ["Libelle" => $categorie->libelle]);
         } else {
             return $this->response(Response::HTTP_UNAUTHORIZED, "Modification impossible !", []);
@@ -77,7 +83,7 @@ class CategorieController extends Controller
         $ids = $request->all();
         $article = new Article();
         $catArticle = Article::whereIn("categorie_id", $ids["id"])->get();
-        return $catArticle;
+        // return $catArticle;
         if (!empty($ids)) {
             if (count($catArticle) == 0) {
                 Categorie::whereIn("id", $ids["id"])->delete();
