@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ArtcileVenteRequest;
+use App\Http\Resources\ArticleResource;
 use App\Http\Resources\ArticleVenteResource;
 use App\Http\Resources\CategorieResource;
-use App\Http\Resources\FournisseurResource;
 use App\Models\Approvisionnement;
 use App\Models\Article;
 use App\Models\ArticleVente;
 use App\Models\Categorie;
-use App\Models\Fournisseur;
 use App\Traits\Format;
 use App\Traits\UploadFile;
 use Illuminate\Http\Request;
@@ -25,10 +24,12 @@ class ArtcileVenteController extends Controller
     public function index()
     {
         $artVente = new ArticleVente();
+        $artConf = new Article();
         $categorie = new Categorie();
         $allCategories = CategorieResource::collection($categorie->where("type_categorie", "vente")->get());
         $allArticles = ArticleVenteResource::collection($artVente->all());
-        return $this->response(Response::HTTP_ACCEPTED, "", ["articles" => $allArticles, "categories" => $allCategories]);
+        $allArticleConfs = ArticleResource::collection($artConf->all());
+        return $this->response(Response::HTTP_ACCEPTED, "", ["articleVentes" => $allArticles, "categories" => $allCategories, "articleConfs" => $allArticleConfs]);
     }
 
     /**
@@ -41,34 +42,41 @@ class ArtcileVenteController extends Controller
         $marge = $request->marge;
         $categorieExist = Categorie::getCatByLib($request->categorie)->first();
         $cat = ArticleVente::getArtByCat($categorieExist->id)->get();
+        // return $this->hasCategorie($articleConfs);
         $categorie = $this->hasCategorie($articleConfs);
         $cout = $this->coutDeFabrique($articleConfs);
-        $newArticle = [
-            "photo" => $this->insertFile($request) ?? null,
-            "libelle" => $request->libelle,
-            "cout_de_fabrication" => $cout,
-            "prix_de_vente" => $cout + $marge,
-            "marge" => $marge,
-            "categorie_id" => $categorieExist->id,
-            "reference" => "REF" . "-" . strtoupper(substr($libelle, 0, 3)) . "-" . strtoupper($categorieExist->libelle) . "-" . count($cat) + 1
-        ];
         if ($categorie) {
+            $newArticle = [
+                "image" => $request->image ?? null,
+                "libelle" => $request->libelle,
+                "cout_de_fabrication" => $cout,
+                "prix_de_vente" => $cout + $marge,
+                "marge" => $marge,
+                "promo" => $request->promo ?? null,
+                "categorie_id" => $categorieExist->id,
+                "reference" => "REF" . "-" . strtoupper(substr($libelle, 0, 3)) . "-" . strtoupper($categorieExist->libelle) . "-" . count($cat) + 1
+            ];
             $data = new ArticleVenteResource(ArticleVente::create($newArticle));
             foreach ($articleConfs as $conf) {
                 $appro[] = [
-                    "article_id" => Article::getArtByLib($conf["libelle"])->first()->id,
+                    "article_id" => Article::getArtByLib($conf["lib"])->first()->id,
                     "article_vente_id" => $data->id,
                     "quantite" => $conf["quantite"]
                 ];
             }
             Approvisionnement::insert($appro);
-            return $this->response(Response::HTTP_ACCEPTED, "", ["articles" => $data]);
+            return $this->response(Response::HTTP_ACCEPTED, "Insertion réussie !", [$data]);
+        } else {
+            return $this->response(Response::HTTP_UNAUTHORIZED, "Impossible de créer cet article !", []);
         }
     }
     public function hasCategorie($articleConfs)
     {
-        $libelleArticles = array_map(fn ($article) => $article["libelle"], $articleConfs);
+        $libelleArticles = array_map(fn ($article) => $article["lib"], $articleConfs);
         foreach ($libelleArticles as $categorie) {
+            if (!Article::getArtByLib($categorie)->first()) {
+                return false;
+            }
             $categories[] = Article::getArtByLib($categorie)->first()->categorie_id;
         }
         foreach ($categories as $id) {
@@ -81,9 +89,12 @@ class ArtcileVenteController extends Controller
     }
     public function coutDeFabrique($articleConfs)
     {
-        $libelleArticles = array_map(fn ($article) => $article["libelle"], $articleConfs);
+        $libelleArticles = array_map(fn ($article) => $article["lib"], $articleConfs);
         $qte = array_map(fn ($article) => $article["quantite"], $articleConfs);
         foreach ($libelleArticles as $categorie) {
+            if (!Article::getArtByLib($categorie)->first()) {
+                return false;
+            }
             $prix[] = Article::getArtByLib($categorie)->first()->prix;
         }
         $taille = count($prix);
@@ -92,6 +103,10 @@ class ArtcileVenteController extends Controller
             $coutDeFabrique += $prix[$i] * $qte[$i];
         }
         return $coutDeFabrique;
+    }
+    public function cout(Request $request)
+    {
+        return $this->coutDeFabrique($request->confection);
     }
 
     /**
@@ -113,8 +128,10 @@ class ArtcileVenteController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(ArticleVente $articleVente)
     {
-        //
+        ArticleVente::where("id", $articleVente->id)->delete();
+        $artDelete = new ArticleVenteResource($articleVente);
+        return $this->response(Response::HTTP_ACCEPTED, "Suppression réussie", [$artDelete]);
     }
 }

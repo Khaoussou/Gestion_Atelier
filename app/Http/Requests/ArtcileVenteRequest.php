@@ -22,7 +22,7 @@ class ArtcileVenteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "libelle" => "required",
+            "libelle" => "required|unique:article_ventes",
             "categorie" => "required",
             "confection" => "required|min:3",
             "photo" => "sometimes",
@@ -33,6 +33,7 @@ class ArtcileVenteRequest extends FormRequest
     {
         return [
             "libelle.required" => "Le libelle est obligatoire !",
+            "libelle.unique" => "Le libelle est unique !",
             "categorie.required" => "La categorie est obligatoire !",
             "confection.required" => "L'article de confection est obligatoire !",
             "confection.min" => "Le nombre d'article n'est pas complet !",

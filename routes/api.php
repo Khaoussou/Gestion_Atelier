@@ -31,3 +31,4 @@ Route::post("/articles/{article}", [ArticleController::class, "update"]);
 Route::apiResource("/articles", ArticleController::class);
 Route::post("/articleVentes/{article}", [ArticleController::class, "update"]);
 Route::apiResource("/articleVentes", ArtcileVenteController::class);
+Route::post("/cout", [ArtcileVenteController::class, "cout"]);

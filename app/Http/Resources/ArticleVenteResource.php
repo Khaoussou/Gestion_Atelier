@@ -19,11 +19,13 @@ class ArticleVenteResource extends JsonResource
             "libelle" => $this->libelle,
             "categorie" => $this->categorie->libelle,
             "prix" => $this->prix_de_vente,
+            "cout" => $this->cout_de_fabrication,
+            "marge" => $this->marge,
             "reference" => $this->reference,
             "image" => $this->image,
             "promo" => $this->promo,
             "stock" => $this->stock,
-            "confection" => $this->article
+            "confection" => ApprovisionnementResource::collection($this->approvisionnement)
         ];
     }
 }
