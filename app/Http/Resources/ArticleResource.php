@@ -23,7 +23,7 @@ class ArticleResource extends JsonResource
             "categorie" => $this->categorie->libelle,
             "reference" => $this->REF,
             "photo" => $this->photo,
-            "fournisseur" => $this->fournisseur,
+            "fournisseur" => FournisseurResource::collection($this->fournisseur),
         ];
     }
 }

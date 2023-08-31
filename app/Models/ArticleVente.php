@@ -16,25 +16,30 @@ class ArticleVente extends Model
     protected $guarded = [
         "id"
     ];
-    // protected static function boot()
-    // {
-    //     parent::boot();
+    protected static function boot()
+    {
+        parent::boot();
 
-    //     static::created(function ($article) {
-    //         self::addOrUpdateFour($article);
-    //     });
-    //     static::updating(function ($article) {
-    //         $article->article()->detach();
-    //         self::addOrUpdateFour($article);
-    //     });
-    // }
-    // protected static function addOrUpdateFour($article)
-    // {
-    //     $libelleArticles = array_map(fn ($article) => $article["libelle"], request()->confection);
-    //     $qte = array_map(fn ($article) => $article["quantite"], request()->confection);
-    //     $idArticle = Article::getArtByLib($libelleArticles)->pluck('id');
-    //     $article->article()->attach($idArticle, ["quantite" => $qte]);
-    // }
+        static::created(function ($articleVente) {
+            self::addOrUpdateFour($articleVente);
+        });
+        static::updating(function ($articleVente) {
+            $articleVente->article()->detach();
+            self::addOrUpdateFour($articleVente);
+        });
+    }
+    protected static function addOrUpdateFour($articleVente)
+    {
+        $articleConfs = request()->confection;
+        foreach ($articleConfs as $conf) {
+            $appro[] = [
+                "article_id" => Article::getArtByLib($conf["lib"])->first()->id,
+                "article_vente_id" => $articleVente->id,
+                "quantite" => $conf["quantite"]
+            ];
+        }
+        $articleVente->article()->attach($appro);
+    }
     public function scopeGetArtByCat(Builder $builder, $cat)
     {
         return $builder->where("categorie_id", $cat);

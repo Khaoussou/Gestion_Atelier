@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ArtcileVenteRequest;
+use App\Http\Requests\UpdateArticleRequest;
+use App\Http\Requests\UpdateArticleVenteRequest;
 use App\Http\Resources\ArticleResource;
 use App\Http\Resources\ArticleVenteResource;
 use App\Http\Resources\CategorieResource;
@@ -42,7 +44,6 @@ class ArtcileVenteController extends Controller
         $marge = $request->marge;
         $categorieExist = Categorie::getCatByLib($request->categorie)->first();
         $cat = ArticleVente::getArtByCat($categorieExist->id)->get();
-        // return $this->hasCategorie($articleConfs);
         $categorie = $this->hasCategorie($articleConfs);
         $cout = $this->coutDeFabrique($articleConfs);
         if ($categorie) {
@@ -57,14 +58,6 @@ class ArtcileVenteController extends Controller
                 "reference" => "REF" . "-" . strtoupper(substr($libelle, 0, 3)) . "-" . strtoupper($categorieExist->libelle) . "-" . count($cat) + 1
             ];
             $data = new ArticleVenteResource(ArticleVente::create($newArticle));
-            foreach ($articleConfs as $conf) {
-                $appro[] = [
-                    "article_id" => Article::getArtByLib($conf["lib"])->first()->id,
-                    "article_vente_id" => $data->id,
-                    "quantite" => $conf["quantite"]
-                ];
-            }
-            Approvisionnement::insert($appro);
             return $this->response(Response::HTTP_ACCEPTED, "Insertion réussie !", [$data]);
         } else {
             return $this->response(Response::HTTP_UNAUTHORIZED, "Impossible de créer cet article !", []);
@@ -120,9 +113,37 @@ class ArtcileVenteController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateArticleVenteRequest $request, ArticleVente $articleVente)
     {
-        //
+        $libelle = $request->libelle;
+        $articleConfs = $request->confection;
+        $marge = $request->marge;
+        $categorieExist = Categorie::getCatByLib($request->categorie)->first();
+        $cat = ArticleVente::getArtByCat($categorieExist->id)->get();
+        $categorie = $this->hasCategorie($articleConfs);
+        $cout = $this->coutDeFabrique($articleConfs);
+        $count = 0;
+        if ($articleVente->categorie_id === $categorieExist->id) {
+            $count = count($cat);
+        } else {
+            $count = count($cat) + 1;
+        }
+        if ($categorie) {
+            $newArticle = [
+                "image" => $request->image ?? null,
+                "libelle" => $request->libelle,
+                "cout_de_fabrication" => $cout,
+                "prix_de_vente" => $cout + $marge,
+                "marge" => $marge,
+                "promo" => $request->promo ?? null,
+                "categorie_id" => $categorieExist->id,
+                "reference" => "REF" . "-" . strtoupper(substr($libelle, 0, 3)) . "-" . strtoupper($categorieExist->libelle) . "-" . $count
+            ];
+            $articleVente->update($newArticle);
+            return $this->response(Response::HTTP_ACCEPTED, "Modification réussie !", [new ArticleVenteResource($articleVente)]);
+        } else {
+            return $this->response(Response::HTTP_UNAUTHORIZED, "Impossible de modifier cet article !", []);
+        }
     }
 
     /**

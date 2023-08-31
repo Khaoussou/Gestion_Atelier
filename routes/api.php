@@ -29,6 +29,6 @@ Route::get("/list/{paginator?}", [CategorieController::class, "list"]);
 Route::apiResource("/categories", CategorieController::class);
 Route::post("/articles/{article}", [ArticleController::class, "update"]);
 Route::apiResource("/articles", ArticleController::class);
-Route::post("/articleVentes/{article}", [ArticleController::class, "update"]);
+// Route::post("/articleVentes/{articleVente}", [ArtcileVenteController::class, "update"]);
 Route::apiResource("/articleVentes", ArtcileVenteController::class);
 Route::post("/cout", [ArtcileVenteController::class, "cout"]);
