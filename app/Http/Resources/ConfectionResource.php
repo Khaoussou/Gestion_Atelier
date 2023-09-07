@@ -16,6 +16,7 @@ class ConfectionResource extends JsonResource
     {
         return [
             "categorie" => new CategorieConfectionResource($this->categorie),
+            "id" => $this->id,
             "libelle" => $this->libelle,
             "prix" => $this->prix
         ];

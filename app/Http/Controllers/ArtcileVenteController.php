@@ -29,9 +29,10 @@ class ArtcileVenteController extends Controller
         $artConf = new Article();
         $categorie = new Categorie();
         $allCategories = CategorieResource::collection($categorie->where("type_categorie", "vente")->get());
+        $allCateConfs = CategorieResource::collection($categorie->where("type_categorie", "confection")->get());
         $allArticles = ArticleVenteResource::collection($artVente->all());
         $allArticleConfs = ArticleResource::collection($artConf->all());
-        return $this->response(Response::HTTP_ACCEPTED, "", ["articleVentes" => $allArticles, "categories" => $allCategories, "articleConfs" => $allArticleConfs]);
+        return $this->response(Response::HTTP_ACCEPTED, "", ["articleVentes" => $allArticles, "categories" => $allCategories, "articleConfs" => $allArticleConfs, "cateconfs" => $allCateConfs]);
     }
 
     /**
